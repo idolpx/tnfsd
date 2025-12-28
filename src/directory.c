@@ -103,6 +103,7 @@ static void _load_ignore_for_dhandle(dir_handle *dirh)
 	fclose(f);
 }
 
+
 #ifdef TNFS_DIR_EXT
 #include <stdint.h>
 #include <string.h>

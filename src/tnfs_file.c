@@ -32,7 +32,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
+#ifndef WIN32
 #include <sys/statvfs.h>
+#endif
 
 #ifdef UNIX
 #include <sys/uio.h>
@@ -383,6 +385,36 @@ void tnfs_rename(Header *hdr, Session *s, unsigned char *buf, int bufsz)
 
 void tnfs_size(Header *hdr, Session *s, unsigned char *buf, int bufsz)
 {
+#ifdef WIN32
+	ULARGE_INTEGER totalBytes, freeBytes, availBytes;
+	get_root(s, fnbuf, MAX_FILEPATH);
+	if (GetDiskFreeSpaceExA(fnbuf, &availBytes, &totalBytes, &freeBytes))
+	{
+		hdr->status = TNFS_SUCCESS;
+		if ( hdr->cmd == TNFS_SIZEBYTESDEVICE )
+		{
+			unsigned char resp[8];
+			uint64tnfs(resp, totalBytes.QuadPart);
+			tnfs_send(s, hdr, resp, sizeof(resp));
+		}
+		else
+		{
+			// Fallback to 32-bit size in KB
+			unsigned char resp[4];
+			uint64_t kb = (totalBytes.QuadPart / 1024ULL);
+			uint32tnfs(resp, (uint32_t)kb);
+			tnfs_send(s, hdr, resp, sizeof(resp));
+		}
+	}
+	else
+	{
+		hdr->status = tnfs_error(GetLastError());
+#ifdef DEBUG
+		fprintf(stderr, "size: GetDiskFreeSpaceExA failed error=%lu status=%d\n", GetLastError(), hdr->status);
+#endif
+		tnfs_send(s, hdr, NULL, 0);
+	}
+#else
 	struct statvfs vfs;
 
 	get_root(s, fnbuf, MAX_FILEPATH);
@@ -414,10 +446,41 @@ void tnfs_size(Header *hdr, Session *s, unsigned char *buf, int bufsz)
 #endif
 		tnfs_send(s, hdr, NULL, 0);
 	}
+#endif
 }
 
 void tnfs_free(Header *hdr, Session *s, unsigned char *buf, int bufsz)
 {
+#ifdef WIN32
+	ULARGE_INTEGER totalBytes, freeBytes, availBytes;
+	get_root(s, fnbuf, MAX_FILEPATH);
+	if (GetDiskFreeSpaceExA(fnbuf, &availBytes, &totalBytes, &freeBytes))
+	{
+		hdr->status = TNFS_SUCCESS;
+		if ( hdr->cmd == TNFS_FREEBYTESDEVICE )
+		{
+			unsigned char resp[8];
+			uint64tnfs(resp, availBytes.QuadPart);
+			tnfs_send(s, hdr, resp, sizeof(resp));
+		}
+		else
+		{
+			// Fallback to 32-bit size in KB
+			unsigned char resp[4];
+			uint64_t kb = (availBytes.QuadPart / 1024ULL);
+			uint32tnfs(resp, (uint32_t)kb);
+			tnfs_send(s, hdr, resp, sizeof(resp));
+		}
+	}
+	else
+	{
+		hdr->status = tnfs_error(GetLastError());
+#ifdef DEBUG
+		fprintf(stderr, "free: GetDiskFreeSpaceExA failed error=%lu status=%d\n", GetLastError(), hdr->status);
+#endif
+		tnfs_send(s, hdr, NULL, 0);
+	}
+#else
 	struct statvfs vfs;
 
 	get_root(s, fnbuf, MAX_FILEPATH);
@@ -449,6 +512,7 @@ void tnfs_free(Header *hdr, Session *s, unsigned char *buf, int bufsz)
 #endif
 		tnfs_send(s, hdr, NULL, 0);
 	}
+#endif
 }
 
 
