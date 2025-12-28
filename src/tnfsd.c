@@ -8,6 +8,9 @@
 #include "log.h"
 #include "version.h"
 #include "tnfsd.h"
+#ifdef HAVE_SQLITE3
+#include "locatedb.h"
+#endif
 
 void tnfsd_init()
 {
@@ -53,5 +56,10 @@ int tnfsd_start(const char* path, int port, bool read_only)
 void tnfsd_stop(int sig)
 {
 	LOG("Stopping tnfsd server.\n");
+#ifdef HAVE_SQLITE3
+	/* Stop any active locate database scan gracefully */
+	locatedb_stop_scan_thread();
+#endif
 	tnfs_sockclose();
+	LOG("tnfsd server stopped.\n");
 }

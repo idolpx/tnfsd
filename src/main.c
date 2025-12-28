@@ -31,9 +31,13 @@
 #include <string.h>
 #include <signal.h>
 
+#include "config.h"
 #include "chroot.h"
 #include "log.h"
 #include "tnfsd.h"
+#ifdef HAVE_SQLITE3
+#include "locatedb.h"
+#endif
 
 /* declare the main() - it won't be used elsewhere so I'll not bother
  * with putting it in a .h file */
@@ -49,13 +53,15 @@ int main(int argc, char **argv)
     char *gvalue = NULL;
 #endif
     bool read_only = false;
+    bool force_rescan = false;
     char *pvalue = NULL;
     char *root_path = NULL;
+    int locate_scan_interval_hours = 24;
 
     #ifdef ENABLE_CHROOT
-    while((opt = getopt(argc, argv, "ru:g:p:")) != -1)
+    while((opt = getopt(argc, argv, "rfu:g:p:l:")) != -1)
     #else
-    while((opt = getopt(argc, argv, "rp:")) != -1)
+    while((opt = getopt(argc, argv, "rfp:l:")) != -1)
     #endif
     {
         switch(opt)
@@ -65,6 +71,16 @@ int main(int argc, char **argv)
                 break;
             case 'r':
                 read_only = true;
+                break;
+            case 'f':
+                force_rescan = true;
+                break;
+            case 'l':
+                locate_scan_interval_hours = atoi(optarg);
+                if (locate_scan_interval_hours < 0) {
+                    fprintf(stderr, "Invalid locate scan interval\n");
+                    exit(-1);
+                }
                 break;
             #ifdef ENABLE_CHROOT
             case 'u':
@@ -140,7 +156,30 @@ int main(int argc, char **argv)
     tnfsd_init();
     tnfsd_init_logs(STDERR_FILENO);
     signal(SIGINT, tnfsd_stop);
+#ifdef HAVE_SQLITE3
+    if (locate_scan_interval_hours > 0) {
+        int scan_interval_seconds = locate_scan_interval_hours * 3600;
+        if (locatedb_init(root_path, scan_interval_seconds) != 0) {
+            fprintf(stderr, "Warning: Failed to initialize locate database\n");
+        } else {
+            /* Start background scan thread */
+            if (locatedb_start_scan_thread(root_path) != 0) {
+                fprintf(stderr, "Warning: Failed to start locate database scan thread\n");
+            }
+            /* Force rescan if requested */
+            if (force_rescan && locatedb_force_rescan() != 0) {
+                fprintf(stderr, "Warning: Failed to force locate database rescan\n");
+            }
+        }
+    }
+#endif
     tnfsd_start(root_path, port, read_only);
+    
+#ifdef HAVE_SQLITE3
+    /* Stop background scan thread before shutdown */
+    locatedb_stop_scan_thread();
+    locatedb_close();
+#endif
 
     return 0;
 }
@@ -148,8 +187,18 @@ int main(int argc, char **argv)
 void print_usage()
 {
     #ifdef ENABLE_CHROOT
-    fprintf(stderr, "Usage: tnfsd [-u <username> -g <group> -p <port> -r] <root dir>\n");
+    fprintf(stderr, "Usage: tnfsd [-u <username> -g <group> -p <port> -r -f] [-l <scan_interval_hours>] <root dir>\n");
     #else
-    fprintf(stderr, "Usage: tnfsd [-p <port> -r] <root dir>\n");
+    fprintf(stderr, "Usage: tnfsd [-p <port> -r -f] [-l <scan_interval_hours>] <root dir>\n");
+    #endif
+    fprintf(stderr, "  -p <port>        Port number (default: %d)\n", TNFSD_PORT);
+    fprintf(stderr, "  -r               Read-only mode\n");
+    fprintf(stderr, "  -f               Force locate DB rescan on startup\n");
+    #ifdef ENABLE_CHROOT
+    fprintf(stderr, "  -u <username>    Username for chroot (requires -g)\n");
+    fprintf(stderr, "  -g <group>       Group for chroot (requires -u)\n");
+    #endif
+    #ifdef HAVE_SQLITE3
+    fprintf(stderr, "  -l <hours>       Locate DB scan interval in hours (default: 24, 0=disabled)\n");
     #endif
 }
