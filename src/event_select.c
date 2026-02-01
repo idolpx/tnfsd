@@ -1,10 +1,18 @@
+#ifdef WIN32
+#define _WINSOCKAPI_   /* Prevent windows.h from including winsock.h */
+#include <winsock2.h>
+#include <windows.h>
+#endif
+
 #include "event.h"
 #include "log.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef WIN32
 #include <sys/time.h>
+#endif
 #ifdef UNIX
 #include <sys/select.h>
 #define SOCKET_ERROR -1
@@ -19,7 +27,11 @@
 int event_fd_list[_EVENT_MAX_FDS];
 fd_set fdset;
 fd_set errfdset;
+#ifdef WIN32
+TIMEVAL select_timeout;
+#else
 struct timeval select_timeout;
+#endif
 event_wait_res_t wait_result;
 
 void tnfs_event_init()

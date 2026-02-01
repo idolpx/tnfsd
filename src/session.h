@@ -26,9 +26,9 @@
  * TNFS session declarations
  *
  * */
-#include <sys/types.h>
-
 #include "tnfs.h"
+
+#include <sys/types.h>
 
 /* Initialize TNFS */
 void tnfs_init();

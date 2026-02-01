@@ -24,6 +24,12 @@
  *
  * */
 
+#ifdef WIN32
+#define _WINSOCKAPI_   /* Prevent windows.h from including winsock.h */
+#include <winsock2.h>
+#include <windows.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -587,7 +593,7 @@ void tnfs_mkdir(Header *hdr, Session *s, unsigned char *buf, int bufsz)
 	}
 	else
 	{
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
 		if (mkdir(dirbuf) == 0)
 #else
 		if (mkdir(dirbuf, 0755) == 0)

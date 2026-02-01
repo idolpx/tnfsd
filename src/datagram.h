@@ -25,16 +25,15 @@
  *
  * */
 
+#ifdef WIN32
+#define _WINSOCKAPI_   /* Prevent windows.h from including winsock.h */
+#include <winsock2.h>
+#include <windows.h>
+#else
 #include <sys/types.h>
-
-#ifdef UNIX
 #include <arpa/inet.h>
 #include <sys/select.h>
 #include <netinet/in.h>
-#endif
-
-#ifdef WIN32
-#include <windows.h>
 #endif
 
 #ifndef in_addr_t

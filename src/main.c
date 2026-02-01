@@ -24,12 +24,24 @@
  *
  * */
 
+#ifdef WIN32
+#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
+#include <winsock2.h>
+#include <windows.h>
+#endif
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <signal.h>
+
+#ifndef WIN32
+#include <unistd.h>
+#else
+#include <getopt.h>
+#define STDERR_FILENO 2
+#endif
 
 #include "config.h"
 #include "chroot.h"

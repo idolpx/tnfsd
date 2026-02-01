@@ -24,6 +24,12 @@
  *
  * */
 
+#ifdef WIN32
+#define _WINSOCKAPI_   /* Prevent windows.h from including winsock.h */
+#include <winsock2.h>
+#include <windows.h>
+#endif
+
 #include <fcntl.h>
 #include <errno.h>
 #include <stdlib.h>

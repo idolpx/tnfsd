@@ -27,6 +27,15 @@
  *
  * */
 
+#ifdef WIN32
+#define _WINSOCKAPI_   /* Prevent windows.h from including winsock.h */
+#include <winsock2.h>
+#include <windows.h>
+#define WIN32_CHAR_P (char *)
+#else
+#define WIN32_CHAR_P
+#endif
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <dirent.h>
@@ -36,12 +45,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#endif
-#ifdef WIN32
-#include <windows.h>
-#define WIN32_CHAR_P (char *)
-#else
-#define WIN32_CHAR_P
 #endif
 
 #ifndef in_addr_t
