@@ -10,6 +10,12 @@ ifndef OS
         OS := LINUX
     else ifeq ($(UNAME_S),Windows_NT)
         OS := Windows_NT
+    else ifneq (,$(findstring CYGWIN,$(UNAME_S)))
+        OS := Windows_NT
+    else ifneq (,$(findstring MSYS,$(UNAME_S)))
+        OS := Windows_NT
+    else ifneq (,$(findstring MINGW,$(UNAME_S)))
+        OS := Windows_NT
     else
         $(error Unknown OS. Please run `make OS=LINUX|BSD|Windows_NT`)
     endif
@@ -23,8 +29,8 @@ ifeq ($(OS),LINUX)
 endif
 ifeq ($(OS),Windows_NT)
     FLAGS = -Wall -DWIN32 -DNEED_BSDCOMPAT
-    EXOBJS = strlcpy.o strlcat.o event_select.o 
-    LIBS = -lwsock32
+    EXOBJS = strlcpy.o strlcat.o event_select.o
+    LIBS = -lws2_32
     EXEC = tnfsd.exe
 endif
 ifeq ($(OS),BSD)
