@@ -1,8 +1,8 @@
 #include <stdio.h>
 
+#include "datagram.h"
 #include "atari.h"
 #include "auth.h"
-#include "datagram.h"
 #include "directory.h"
 #include "errortable.h"
 #include "event.h"

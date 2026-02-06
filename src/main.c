@@ -71,14 +71,11 @@ int main(int argc, char **argv)
     char *root_path = NULL;
     int locate_scan_interval_hours = 24;
 
-    #ifdef ENABLE_CHROOT
-    while((opt = getopt(argc, argv, "rfu:g:p:l:")) != -1)
-    #else
-    while((opt = getopt(argc, argv, "rfp:l:")) != -1)
-    while((opt = getopt(argc, argv, "aru:g:p:")) != -1)
-    #else
-    while((opt = getopt(argc, argv, "arp:")) != -1)
-    #endif
+#ifdef ENABLE_CHROOT
+    while((opt = getopt(argc, argv, "arfu:g:p:l:")) != -1)
+#else
+    while((opt = getopt(argc, argv, "arfp:l:")) != -1)
+#endif
     {
         switch(opt)
         {
@@ -100,14 +97,14 @@ int main(int argc, char **argv)
             case 'a':
                 atari_mode = true;
                 break;
-            #ifdef ENABLE_CHROOT
+#ifdef ENABLE_CHROOT
             case 'u':
                 uvalue = optarg;
                 break;
             case 'g':
                 gvalue = optarg;
                 break;
-            #endif
+#endif
             case ':':
                 fprintf(stderr, "option needs a value\n");
                 print_usage();
@@ -139,7 +136,7 @@ int main(int argc, char **argv)
         exit(-1);
     }
 
-    #ifdef ENABLE_CHROOT
+#ifdef ENABLE_CHROOT
     if (uvalue || gvalue)
     {
         /* chroot into the specified directory and drop privs */
@@ -157,7 +154,7 @@ int main(int argc, char **argv)
         root_path = strdup("/");
     }
     warn_if_root();
-    #endif
+#endif
 
     int port = TNFSD_PORT;
 

@@ -309,7 +309,7 @@ static int _scan_directory_recursive(const char *root_path, const char *current_
 			continue;
 
 		/* Skip the locate database itself */
-		if (strcmp(entry->d_name, ".locate.db") == 0)
+		if (strcmp(entry->d_name, "locate.db") == 0)
 			continue;
 
 		snprintf(full_path, sizeof(full_path), "%s/%s", current_path, entry->d_name);

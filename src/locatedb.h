@@ -24,7 +24,7 @@
 #ifdef HAVE_SQLITE3
 
 /* Initialize the locate database at the specified root path.
- * Creates .locate.db if it doesn't exist and initializes the schema.
+ * Creates locate.db if it doesn't exist and initializes the schema.
  * scan_interval_seconds: how often to perform full filesystem scans (0 = no periodic scan)
  * Returns 0 on success, -1 on error */
 int locatedb_init(const char *root_path, int scan_interval_seconds);
