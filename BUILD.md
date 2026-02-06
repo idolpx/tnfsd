@@ -1,23 +1,37 @@
 # Building the tnfs daemon
 
-* `cd` into `src`
-* Use the command `make OS=osname`.
-* The following is valid:
+Run `make` from the project root. The OS is auto-detected, but you can
+override it with `make OS=osname`. Valid OS values:
 
 ```
    make OS=LINUX       All versions of Linux
-   make OS=BSD         Use this also for macOS. Has been tested on OpenBSD.
-   make OS=Windows_NT  All versions of Windows (with MinGW)
+   make OS=BSD         macOS and BSD variants (tested on OpenBSD)
+   make OS=Windows_NT  Windows (MinGW, Cygwin, MSYS2)
 ```
 
-If using Windows with cygwin, it's probable you'll need to use
-make `OS=LINUX` instead since Cygwin looks more like Linux than Windows.
-You might have to remove the `-DENABLE_CHROOT` from the Makefile, though
-since I'm not sure chrooting is supported under Cygwin.
+On Windows with Cygwin or MSYS2, you can also use the included `build.bat`
+script, which auto-detects the Cygwin/MSYS2 installation path:
 
-To make a debug version, use `make OS=osname DEBUG=yes`. This will add
-some extra debugging messages and add the -g flag to the compilation 
-options.
+```
+   build.bat
+   build.bat DEBUG=yes
+   build.bat LOCATE_DB=no
+```
 
-To output basic usage log on stdout, use `make OS=osname USAGELOG=yes`.
+## Build options
+
+| Variable | Default | Description |
+|---|---|---|
+| `DEBUG=yes` | no | Adds `-g` flag and extra debug messages |
+| `USAGELOG=yes` | no | Outputs basic usage log on stdout |
+| `LOCATE_DB=yes\|no` | yes | Enables SQLite3 locate database (requires libsqlite3) |
+| `ENABLE_CHROOT=yes\|no` | yes (Unix only) | Enables chroot support (Linux and BSD only) |
+
+## Make targets
+
+| Target | Description |
+|---|---|
+| `all` | Build the executable (default) |
+| `clean` | Remove all build artifacts |
+| `help` | Display available options |
 
