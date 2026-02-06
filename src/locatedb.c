@@ -127,8 +127,8 @@ int locatedb_init(const char *root_path, int scan_interval_seconds)
 
 	scan_interval = scan_interval_seconds;
 	
-	/* Build path to .locate.db */
-	snprintf(db_path, sizeof(db_path), "%s/.locate.db", root_path);
+	/* Build path to locate.db */
+	snprintf(db_path, sizeof(db_path), "%s/locate.db", root_path);
 
 	/* Check if database file exists and how old it is */
 	now = time(NULL);
