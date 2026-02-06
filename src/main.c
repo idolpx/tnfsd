@@ -66,6 +66,7 @@ int main(int argc, char **argv)
 #endif
     bool read_only = false;
     bool force_rescan = false;
+    bool atari_mode = false;
     char *pvalue = NULL;
     char *root_path = NULL;
     int locate_scan_interval_hours = 24;
@@ -74,6 +75,9 @@ int main(int argc, char **argv)
     while((opt = getopt(argc, argv, "rfu:g:p:l:")) != -1)
     #else
     while((opt = getopt(argc, argv, "rfp:l:")) != -1)
+    while((opt = getopt(argc, argv, "aru:g:p:")) != -1)
+    #else
+    while((opt = getopt(argc, argv, "arp:")) != -1)
     #endif
     {
         switch(opt)
@@ -93,6 +97,8 @@ int main(int argc, char **argv)
                     fprintf(stderr, "Invalid locate scan interval\n");
                     exit(-1);
                 }
+            case 'a':
+                atari_mode = true;
                 break;
             #ifdef ENABLE_CHROOT
             case 'u':
@@ -184,14 +190,12 @@ int main(int argc, char **argv)
             }
         }
     }
-#endif
-    tnfsd_start(root_path, port, read_only);
-    
-#ifdef HAVE_SQLITE3
+
     /* Stop background scan thread before shutdown */
     locatedb_stop_scan_thread();
     locatedb_close();
 #endif
+    tnfsd_start(root_path, port, read_only, atari_mode);
 
     return 0;
 }
@@ -212,5 +216,10 @@ void print_usage()
     #endif
     #ifdef HAVE_SQLITE3
     fprintf(stderr, "  -l <hours>       Locate DB scan interval in hours (default: 24, 0=disabled)\n");
+    fprintf(stderr, "Usage: tnfsd [-u <username> -g <group> -p <port> -r -a] <root dir>\n");
+    fprintf(stderr, "  -a  Enable Atari mode (present binary files as ATR images)\n");
+    #else
+    fprintf(stderr, "Usage: tnfsd [-p <port> -r -a] <root dir>\n");
+    fprintf(stderr, "  -a  Enable Atari mode (present binary files as ATR images)\n");
     #endif
 }
